@@ -1,0 +1,17 @@
+[
+  {"id":101,"category":"accessory","type":"case","brand":"Spigen","name":"Rugged Armor Case","compatibleWith":["iPhone 15","Samsung Galaxy S24"],"price":799,"stock":50,"rating":4.4},
+  {"id":102,"category":"accessory","type":"case","brand":"Ringke","name":"Fusion Clear Case","compatibleWith":["OnePlus 12","Nothing Phone 2"],"price":599,"stock":40,"rating":4.3},
+  {"id":103,"category":"accessory","type":"screen_protector","brand":"Whitestone","name":"Dome Glass Protector","compatibleWith":["Samsung Galaxy S24 Ultra","iPhone 15 Pro Max"],"price":1499,"stock":30,"rating":4.5},
+  {"id":104,"category":"accessory","type":"screen_protector","brand":"Spigen","name":"GlasTR EZ Fit","compatibleWith":["iPhone 15","iPhone 14"],"price":999,"stock":45,"rating":4.4},
+  {"id":105,"category":"accessory","type":"charger","brand":"Anker","name":"Nano II 65W GaN Charger","compatibleWith":["Universal"],"price":2999,"stock":25,"rating":4.6},
+  {"id":106,"category":"accessory","type":"charger","brand":"Samsung","name":"45W Super Fast Charger","compatibleWith":["Samsung Galaxy S24","Samsung Galaxy S24 Ultra"],"price":2499,"stock":20,"rating":4.3},
+  {"id":107,"category":"accessory","type":"earphones","brand":"Samsung","name":"Galaxy Buds FE","compatibleWith":["Universal"],"price":6999,"stock":15,"rating":4.2},
+  {"id":108,"category":"accessory","type":"earphones","brand":"boAt","name":"Airdopes 141 TWS","compatibleWith":["Universal"],"price":1099,"stock":60,"rating":4.0},
+  {"id":109,"category":"accessory","type":"power_bank","brand":"Ambrane","name":"10000mAh Powerbank","compatibleWith":["Universal"],"price":899,"stock":35,"rating":4.1},
+  {"id":110,"category":"accessory","type":"power_bank","brand":"Mi","name":"20000mAh Power Bank 3i","compatibleWith":["Universal"],"price":1599,"stock":20,"rating":4.3},
+  {"id":111,"category":"accessory","type":"cable","brand":"Anker","name":"USB-C to USB-C Cable 2m","compatibleWith":["Universal"],"price":699,"stock":55,"rating":4.4},
+  {"id":112,"category":"accessory","type":"case","brand":"UAG","name":"Monarch Series Case","compatibleWith":["iPhone 15 Pro","Samsung Galaxy S24"],"price":2999,"stock":12,"rating":4.6},
+  {"id":113,"category":"accessory","type":"earphones","brand":"OnePlus","name":"Buds 3","compatibleWith":["Universal"],"price":5499,"stock":18,"rating":4.3},
+  {"id":114,"category":"accessory","type":"charger","brand":"OnePlus","name":"SUPERVOOC 100W Charger","compatibleWith":["OnePlus 12","OnePlus Nord CE4"],"price":1999,"stock":22,"rating":4.2},
+  {"id":115,"category":"accessory","type":"power_bank","brand":"Anker","name":"PowerCore 26800mAh","compatibleWith":["Universal"],"price":4999,"stock":10,"rating":4.5}
+]

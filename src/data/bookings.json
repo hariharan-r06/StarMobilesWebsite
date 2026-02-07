@@ -1,0 +1,5 @@
+[
+  {"id":"BK001","userId":2,"customerName":"Rahul Kumar","phone":"9123456789","brand":"Samsung","model":"Galaxy S23","problemType":"Screen Damage","description":"Screen cracked after fall from table","preferredDate":"2026-02-10","preferredTime":"14:00","status":"pending","createdAt":"2026-02-07T10:30:00","adminNotes":""},
+  {"id":"BK002","userId":3,"customerName":"Priya Sharma","phone":"9234567890","brand":"Apple","model":"iPhone 14","problemType":"Battery Issue","description":"Battery drains very fast, phone heats up","preferredDate":"2026-02-08","preferredTime":"11:00","status":"in_progress","createdAt":"2026-02-06T09:15:00","adminNotes":"Battery replacement ordered"},
+  {"id":"BK003","userId":2,"customerName":"Rahul Kumar","phone":"9123456789","brand":"OnePlus","model":"Nord CE3","problemType":"Software Problem","description":"Phone keeps restarting randomly","preferredDate":"2026-02-05","preferredTime":"16:00","status":"completed","createdAt":"2026-02-03T14:00:00","adminNotes":"Factory reset done, software updated"}
+]
