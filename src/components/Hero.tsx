@@ -30,7 +30,7 @@ const Hero = () => {
                 {/* Text Content */}
                 <div className="space-y-6 pt-10 md:pt-0 text-center md:text-left">
                     <div className="inline-block px-4 py-1.5 rounded-full bg-orange-500 text-white text-xs font-bold tracking-wider mb-2 shadow-lg shadow-orange-500/20">
-                        NEW ARRIVALS 2025
+                        NEW ARRIVALS
                     </div>
                     <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
                         Find Your Perfect <br />
@@ -67,10 +67,7 @@ const Hero = () => {
                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
             </div>
 
-            {/* Chat Bubble */}
-            <button className="absolute bottom-8 right-8 w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 z-50 animate-bounce-subtle">
-                <MessageCircle className="w-6 h-6" />
-            </button>
+
         </section>
     );
 };

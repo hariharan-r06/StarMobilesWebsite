@@ -108,9 +108,9 @@ const Mobiles = () => {
                     key={cat}
                     onClick={() => setActiveCategory(cat === 'All Products' ? 'All' : cat as any)}
                     className={`block w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${(activeCategory === 'All' && cat === 'All Products') ||
-                        activeCategory === cat
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                      activeCategory === cat
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     {cat}
@@ -194,7 +194,7 @@ const Mobiles = () => {
 
             {/* Products Grid */}
             {!isLoading && !error && filtered.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                 {filtered.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -206,6 +206,7 @@ const Mobiles = () => {
                     ram={item.ram}
                     storage={item.storage}
                     rating={item.rating}
+                    stock={item.stock}
                     category={item.category}
                     featured={item.featured}
                     onViewDetails={() => setSelectedProduct(item)}
