@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit, Trash2, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Plus, Edit, Trash2, X, Upload, Image as ImageIcon, Loader2, Search, ArrowUpDown } from 'lucide-react';
 import { useProducts, Product } from '@/context/ProductsContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice, mobileBrands } from '@/utils/helpers';
@@ -50,6 +50,9 @@ const ManageProducts = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [filter, setFilter] = useState<'all' | 'mobile' | 'accessory'>('all');
+  const [search, setSearch] = useState('');
+  const [brandFilter, setBrandFilter] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'asc' | 'desc' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -58,7 +61,46 @@ const ManageProducts = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  const filtered = filter === 'all' ? products : products.filter(p => p.category === filter);
+  const filtered = useMemo(() => {
+    let result = products.filter(p => {
+      const matchesCategory = filter === 'all' || p.category === filter;
+      const matchesSearch = !search ||
+        `${p.brand} ${p.model}`.toLowerCase().includes(search.toLowerCase());
+      const matchesBrand = !brandFilter || p.brand === brandFilter;
+
+      return matchesCategory && matchesSearch && matchesBrand;
+    });
+
+    if (sortConfig !== null) {
+      result.sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (aValue === undefined || bValue === undefined) return 0;
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    } else {
+      // Default sort A-Z by Brand
+      result.sort((a, b) => a.brand.localeCompare(b.brand));
+    }
+
+    return result;
+  }, [products, filter, search, brandFilter, sortConfig]);
+
+  const requestSort = (key: keyof Product) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   // Load products on mount
   useEffect(() => {
@@ -262,26 +304,73 @@ const ManageProducts = () => {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        {(['all', 'mobile', 'accessory'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize ${filter === f ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary/10'}`}>
-            {f === 'all' ? 'All' : f === 'mobile' ? 'Mobiles' : 'Accessories'}
-          </button>
-        ))}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            className={`${inputClass} pl-10`}
+            placeholder="Search by brand or model..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <select
+            className={`${inputClass} w-auto min-w-[150px]`}
+            value={brandFilter}
+            onChange={e => setBrandFilter(e.target.value)}
+          >
+            <option value="">All Brands</option>
+            {mobileBrands.map(b => <option key={b} value={b}>{b}</option>)}
+          </select>
+
+          <div className="flex p-1 bg-muted rounded-lg">
+            {(['all', 'mobile', 'accessory'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`rounded-md px-4 py-1.5 text-xs font-medium capitalize transition-all ${filter === f ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {f === 'all' ? 'All' : f === 'mobile' ? 'Mobiles' : 'Accessories'}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-sm">
           <thead className="bg-muted">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Image</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Brand</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Model/Name</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Stock</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Type</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Featured</th>
-              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Image</th>
+              <th
+                className="px-4 py-3 text-left font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors whitespace-nowrap"
+                onClick={() => requestSort('brand')}
+              >
+                <div className="flex items-center gap-1">Brand <ArrowUpDown className="h-3 w-3" /></div>
+              </th>
+              <th
+                className="px-4 py-3 text-left font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors whitespace-nowrap"
+                onClick={() => requestSort('model')}
+              >
+                <div className="flex items-center gap-1">Model/Name <ArrowUpDown className="h-3 w-3" /></div>
+              </th>
+              <th
+                className="px-4 py-3 text-left font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors whitespace-nowrap"
+                onClick={() => requestSort('price')}
+              >
+                <div className="flex items-center gap-1">Price <ArrowUpDown className="h-3 w-3" /></div>
+              </th>
+              <th
+                className="px-4 py-3 text-left font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors whitespace-nowrap"
+                onClick={() => requestSort('stock')}
+              >
+                <div className="flex items-center gap-1">Stock <ArrowUpDown className="h-3 w-3" /></div>
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Type</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Featured</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody>
