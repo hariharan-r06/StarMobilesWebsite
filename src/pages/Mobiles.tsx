@@ -19,9 +19,18 @@ const Mobiles = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 160000]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [sortBy, setSortBy] = useState<'popular' | 'price_low' | 'price_high' | 'newest'>('popular');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+
+  const sortOptions = [
+    { value: 'popular', label: 'Most Popular' },
+    { value: 'price_low', label: 'Price: Low to High' },
+    { value: 'price_high', label: 'Price: High to Low' },
+    { value: 'newest', label: 'Newest First' },
+  ] as const;
 
   const filtered = useMemo(() => {
-    return products.filter(item => {
+    const filteredProducts = products.filter(item => {
       // Category Filter
       let matchCategory = true;
       if (activeCategory === 'Phones') matchCategory = item.category === 'mobile';
@@ -38,7 +47,22 @@ const Mobiles = () => {
 
       return matchCategory && matchesSearch && matchesBrand && matchesPrice;
     });
-  }, [products, activeCategory, search, selectedBrands, priceRange]);
+
+    // Apply sorting
+    return [...filteredProducts].sort((a, b) => {
+      switch (sortBy) {
+        case 'price_low':
+          return a.price - b.price;
+        case 'price_high':
+          return b.price - a.price;
+        case 'newest':
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        case 'popular':
+        default:
+          return (b.rating || 0) - (a.rating || 0);
+      }
+    });
+  }, [products, activeCategory, search, selectedBrands, priceRange, sortBy]);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
@@ -169,10 +193,38 @@ const Mobiles = () => {
                 {isLoading ? 'Loading...' : `${filtered.length} products found`}
               </p>
 
+              {/* Sort Dropdown */}
               <div className="relative">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  Most Popular <ChevronDown className="w-4 h-4 text-gray-400" />
+                <button
+                  onClick={() => setShowSortMenu(!showSortMenu)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  {sortOptions.find(o => o.value === sortBy)?.label}
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
                 </button>
+
+                {showSortMenu && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {sortOptions.map(option => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setSortBy(option.value);
+                            setShowSortMenu(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
