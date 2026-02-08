@@ -1,15 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, Clock, Award, Star } from 'lucide-react';
+import { ArrowRight, Shield, Clock, Award, Star, Loader2 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import ServiceCard from '@/components/ServiceCard';
 import Hero from '@/components/Hero';
-import mobilesData from '@/data/mobiles.json';
+import { useProducts } from '@/context/ProductsContext';
 import { services } from '@/utils/helpers';
 
-const featured = mobilesData.filter(m => m.featured).slice(0, 10);
-
 const Index = () => {
+  const { products, isLoading, fetchProducts } = useProducts();
+
+  // Fetch products on mount
+  useEffect(() => {
+    fetchProducts({ featured: true });
+  }, []);
+
+  // Get featured products (max 10)
+  const featuredProducts = products.filter(p => p.featured).slice(0, 10);
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
@@ -37,7 +45,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Featured Products from Database */}
       <section className="container mx-auto px-4 py-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
@@ -49,16 +57,37 @@ const Index = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {featured.map(p => (
-            <ProductCard
-              key={p.id}
-              {...p}
-              category="mobile"
-              featured={true} // Force featured logic for home page
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : featuredProducts.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {featuredProducts.map(p => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                brand={p.brand}
+                model={p.model}
+                price={p.price}
+                image={p.image || ''}
+                rating={p.rating || 0}
+                stock={p.stock || 0}
+                category={p.category}
+                featured={true}
+                ram={p.ram}
+                storage={p.storage}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">No featured products available</p>
+            <Link to="/mobiles" className="text-primary hover:underline mt-2 inline-block">
+              Browse all products →
+            </Link>
+          </div>
+        )}
 
         <div className="mt-10 text-center md:hidden">
           <Link to="/mobiles" className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg font-bold text-sm">

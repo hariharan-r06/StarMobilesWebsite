@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
@@ -38,11 +38,45 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Local storage key for admin profile cache
+const PROFILE_CACHE_KEY = 'star_mobiles_profile_cache';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Track if profile was fetched from backend (reliable source)
+  const profileFetchedRef = useRef(false);
+
+  // Get cached profile from localStorage
+  const getCachedProfile = (userId: string): UserProfile | null => {
+    try {
+      const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.id === userId) {
+          return parsed;
+        }
+      }
+    } catch { }
+    return null;
+  };
+
+  // Cache profile to localStorage
+  const cacheProfile = (profileData: UserProfile) => {
+    try {
+      localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profileData));
+    } catch { }
+  };
+
+  // Clear cached profile
+  const clearCachedProfile = () => {
+    try {
+      localStorage.removeItem(PROFILE_CACHE_KEY);
+    } catch { }
+  };
 
   // Create profile from user auth data (fallback when DB fetch fails)
   const createProfileFromUser = useCallback((authUser: SupabaseUser): UserProfile => ({
@@ -54,35 +88,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     address: ''
   }), []);
 
-  // Fetch profile from database with timeout
-  const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
-    console.log('Fetching profile for userId:', userId);
+  // Fetch profile from backend API (uses admin client, bypasses RLS)
+  const fetchProfileFromBackend = useCallback(async (userId: string, accessToken: string): Promise<UserProfile | null> => {
     try {
-      // Create a promise that rejects after timeout
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout')), 5000);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      const fetchPromise = supabase
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profile) {
+          console.log('Profile from backend:', data.profile);
+          return data.profile as UserProfile;
+        }
+      }
+    } catch (error) {
+      console.log('Backend profile fetch error:', error);
+    }
+    return null;
+  }, []);
+
+  // Fetch profile from database directly (fallback)
+  const fetchProfileFromDB = useCallback(async (userId: string): Promise<UserProfile | null> => {
+    try {
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      // Race between fetch and timeout
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-
-      console.log('Profile fetch result:', { data, error: error?.message });
-
-      if (error || !data) {
-        console.log('Profile fetch failed:', error?.message || 'No data');
-        return null;
+      if (!error && data) {
+        return data as UserProfile;
       }
-      return data as UserProfile;
-    } catch (error: any) {
-      console.log('fetchProfile error:', error?.message || 'Unknown error');
-      return null;
-    }
+    } catch { }
+    return null;
   }, []);
 
   // Initialize auth on mount
@@ -96,12 +139,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (mounted && currentSession?.user) {
           setSession(currentSession);
           setUser(currentSession.user);
-          // Set fallback profile immediately
-          setProfile(createProfileFromUser(currentSession.user));
-          // Fetch real profile in background
-          const dbProfile = await fetchProfile(currentSession.user.id);
-          if (mounted && dbProfile) {
-            setProfile(dbProfile);
+
+          // First check cache for admin profile
+          const cachedProfile = getCachedProfile(currentSession.user.id);
+          if (cachedProfile) {
+            console.log('Using cached profile with role:', cachedProfile.role);
+            setProfile(cachedProfile);
+            profileFetchedRef.current = true;
+          } else {
+            // Set fallback profile
+            setProfile(createProfileFromUser(currentSession.user));
+          }
+
+          // Fetch fresh profile from backend
+          const backendProfile = await fetchProfileFromBackend(
+            currentSession.user.id,
+            currentSession.access_token
+          );
+
+          if (mounted && backendProfile) {
+            console.log('Setting profile from backend init with role:', backendProfile.role);
+            setProfile(backendProfile);
+            cacheProfile(backendProfile);
+            profileFetchedRef.current = true;
+          } else if (mounted && !cachedProfile) {
+            // Try direct DB fetch as last resort
+            const dbProfile = await fetchProfileFromDB(currentSession.user.id);
+            if (dbProfile) {
+              setProfile(dbProfile);
+              cacheProfile(dbProfile);
+            }
           }
         }
       } catch (error) {
@@ -123,17 +190,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setProfile(null);
         setSession(null);
+        clearCachedProfile();
+        profileFetchedRef.current = false;
       } else if (event === 'SIGNED_IN' && newSession?.user) {
         setSession(newSession);
         setUser(newSession.user);
-        setProfile(createProfileFromUser(newSession.user));
-        // Fetch profile in background
-        fetchProfile(newSession.user.id).then(dbProfile => {
-          if (mounted && dbProfile) setProfile(dbProfile);
-        });
+
+        // Check cache first
+        const cachedProfile = getCachedProfile(newSession.user.id);
+        if (cachedProfile) {
+          setProfile(cachedProfile);
+        } else {
+          setProfile(createProfileFromUser(newSession.user));
+        }
       } else if (event === 'TOKEN_REFRESHED' && newSession?.user) {
         setSession(newSession);
         setUser(newSession.user);
+
+        // On token refresh, re-fetch profile to ensure admin role is preserved
+        if (!profileFetchedRef.current) {
+          const backendProfile = await fetchProfileFromBackend(
+            newSession.user.id,
+            newSession.access_token
+          );
+          if (mounted && backendProfile) {
+            setProfile(backendProfile);
+            cacheProfile(backendProfile);
+            profileFetchedRef.current = true;
+          }
+        }
       }
     });
 
@@ -141,14 +226,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [createProfileFromUser, fetchProfile]);
+  }, [createProfileFromUser, fetchProfileFromBackend, fetchProfileFromDB]);
 
   // Login with email - uses backend API to get profile with admin privileges
   const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-      // Use backend API which uses admin client to bypass RLS
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,8 +259,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Use profile from backend (fetched with admin privileges)
         if (result.profile) {
-          console.log('Setting profile from backend with role:', result.profile.role);
+          console.log('Setting profile from backend login with role:', result.profile.role);
           setProfile(result.profile);
+          cacheProfile(result.profile);
+          profileFetchedRef.current = true;
         } else {
           console.log('No profile from backend, using fallback');
           setProfile(createProfileFromUser(result.user));
@@ -197,14 +283,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase.auth.signInWithPassword({ phone: formattedPhone, password });
       if (error) return { success: false, message: error.message };
 
-      if (data.user) {
+      if (data.user && data.session) {
         setUser(data.user);
         setSession(data.session);
 
-        // Fetch profile and WAIT for it (important for admin role)
-        const dbProfile = await fetchProfile(data.user.id);
-        if (dbProfile) {
-          setProfile(dbProfile);
+        // Fetch profile from backend
+        const backendProfile = await fetchProfileFromBackend(data.user.id, data.session.access_token);
+        if (backendProfile) {
+          setProfile(backendProfile);
+          cacheProfile(backendProfile);
+          profileFetchedRef.current = true;
         } else {
           setProfile(createProfileFromUser(data.user));
         }
@@ -237,22 +325,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, message: result.error || 'Signup failed' };
       }
 
-      // Set session if we got one
       if (result.session && result.user) {
         const newUser = result.user as SupabaseUser;
         setUser(newUser);
         setSession(result.session as Session);
-        setProfile(createProfileFromUser(newUser));
 
-        // Sync with Supabase client in background
-        supabase.auth.setSession({
+        const newProfile = createProfileFromUser(newUser);
+        setProfile(newProfile);
+        cacheProfile(newProfile);
+
+        // Sync with Supabase client
+        await supabase.auth.setSession({
           access_token: result.session.access_token,
           refresh_token: result.session.refresh_token
-        }).then(() => {
-          fetchProfile(newUser.id).then(dbProfile => {
-            if (dbProfile) setProfile(dbProfile);
-          });
-        }).catch(() => { });
+        });
       }
 
       return { success: true, message: result.message || 'Account created!' };
@@ -281,13 +367,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase.auth.verifyOtp({ phone: formattedPhone, token: otp, type: 'sms' });
       if (error) return { success: false, message: error.message };
 
-      if (data.user) {
+      if (data.user && data.session) {
         setUser(data.user);
         setSession(data.session);
-        setProfile(createProfileFromUser(data.user));
-        fetchProfile(data.user.id).then(dbProfile => {
-          if (dbProfile) setProfile(dbProfile);
-        });
+
+        const backendProfile = await fetchProfileFromBackend(data.user.id, data.session.access_token);
+        if (backendProfile) {
+          setProfile(backendProfile);
+          cacheProfile(backendProfile);
+        } else {
+          setProfile(createProfileFromUser(data.user));
+        }
       }
       return { success: true, message: 'Verified!' };
     } catch (error: any) {
@@ -337,8 +427,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setProfile(null);
       setSession(null);
+      clearCachedProfile();
+      profileFetchedRef.current = false;
 
-      // Sign out from Supabase (clears cookies and localStorage)
+      // Sign out from Supabase
       await supabase.auth.signOut({ scope: 'global' });
 
       // Force clear ALL Supabase localStorage keys
@@ -353,10 +445,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if signOut fails, clear local state
       setUser(null);
       setProfile(null);
       setSession(null);
+      clearCachedProfile();
     }
   };
 
@@ -372,9 +464,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) return { success: false, message: error.message };
 
-      // Update local state immediately
+      // Update local state and cache
       if (profile) {
-        setProfile({ ...profile, ...data });
+        const updatedProfile = { ...profile, ...data };
+        setProfile(updatedProfile);
+        cacheProfile(updatedProfile);
       }
       return { success: true, message: 'Profile updated!' };
     } catch (error: any) {
@@ -382,18 +476,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Refresh profile from database
+  // Refresh profile from backend
   const refreshProfile = useCallback(async () => {
-    if (user) {
-      const dbProfile = await fetchProfile(user.id);
-      if (dbProfile) {
-        setProfile(dbProfile);
-      } else {
-        // If DB fetch fails, use fallback
-        setProfile(createProfileFromUser(user));
+    if (user && session) {
+      const backendProfile = await fetchProfileFromBackend(user.id, session.access_token);
+      if (backendProfile) {
+        setProfile(backendProfile);
+        cacheProfile(backendProfile);
+        profileFetchedRef.current = true;
       }
     }
-  }, [user, fetchProfile, createProfileFromUser]);
+  }, [user, session, fetchProfileFromBackend]);
 
   const value: AuthContextType = {
     user,

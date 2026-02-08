@@ -15,6 +15,7 @@ interface ProductCardProps {
   ram?: string;
   storage?: string;
   rating?: number;
+  stock?: number;
   category: 'mobile' | 'accessory';
   onViewDetails?: () => void;
   onBook?: () => void;
