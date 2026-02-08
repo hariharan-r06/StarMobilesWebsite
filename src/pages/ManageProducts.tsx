@@ -3,7 +3,7 @@ import {
   Plus, Edit, Trash2, X, Upload, Image as ImageIcon,
   Loader2, Package, Search, Filter, ChevronDown,
   TrendingUp, AlertCircle, CheckCircle2, MoreVertical,
-  Layers, Smartphone, Headphones, ArrowUpRight
+  Layers, Smartphone, Headphones, ArrowUpRight, IndianRupee
 } from 'lucide-react';
 import { useProducts, Product } from '@/context/ProductsContext';
 import { useAuth } from '@/context/AuthContext';
@@ -155,11 +155,17 @@ const ManageProducts = () => {
       }
 
       const productData = {
-        ...form,
+        brand: form.brand,
+        model: form.model,
         price: Number(form.price),
+        category: form.category,
+        ram: form.ram,
+        storage: form.storage,
         stock: Number(form.stock),
         rating: Number(form.rating) || 0,
-        image: imageUrl
+        featured: form.featured,
+        image: imageUrl,
+        specs: form.specs
       };
 
       const url = editId ? `${API_URL}/products/${editId}` : `${API_URL}/products`;
@@ -531,7 +537,7 @@ const ManageProducts = () => {
                           </div>
                           <div>
                             <label className="text-xs font-bold text-slate-700 mb-1.5 block">Display</label>
-                            <input className={inputClass} placeholder="6.7\" AMOLED..." value={form.specs.display} onChange={e => setForm(p => ({ ...p, specs: { ...p.specs, display: e.target.value } }))} />
+                            <input className={inputClass} placeholder='6.7" AMOLED...' value={form.specs.display} onChange={e => setForm(p => ({ ...p, specs: { ...p.specs, display: e.target.value } }))} />
                           </div>
                         </div>
                       </div>
