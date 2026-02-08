@@ -13,7 +13,6 @@ const Mobiles = () => {
   const { addItem, isLoading: cartLoading } = useCart();
   const { isAuthenticated } = useAuth();
 
-  const [activeCategory, setActiveCategory] = useState<'All' | 'Phones' | 'Accessories'>('All');
   const [search, setSearch] = useState('');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 160000]);
@@ -29,12 +28,12 @@ const Mobiles = () => {
     { value: 'newest', label: 'Newest First' },
   ] as const;
 
+  const mobiles = useMemo(() => {
+    return products.filter(p => p.category === 'mobile');
+  }, [products]);
+
   const filtered = useMemo(() => {
-    const filteredProducts = products.filter(item => {
-      // Category Filter
-      let matchCategory = true;
-      if (activeCategory === 'Phones') matchCategory = item.category === 'mobile';
-      if (activeCategory === 'Accessories') matchCategory = item.category === 'accessory';
+    const filteredProducts = mobiles.filter(item => {
 
       // Search Filter
       const matchesSearch = !search || `${item.brand} ${item.model}`.toLowerCase().includes(search.toLowerCase());
@@ -45,7 +44,7 @@ const Mobiles = () => {
       // Price Filter
       const matchesPrice = item.price >= priceRange[0] && item.price <= priceRange[1];
 
-      return matchCategory && matchesSearch && matchesBrand && matchesPrice;
+      return matchesSearch && matchesBrand && matchesPrice;
     });
 
     // Apply sorting
@@ -62,7 +61,7 @@ const Mobiles = () => {
           return (b.rating || 0) - (a.rating || 0);
       }
     });
-  }, [products, activeCategory, search, selectedBrands, priceRange, sortBy]);
+  }, [mobiles, search, selectedBrands, priceRange, sortBy]);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
@@ -92,11 +91,11 @@ const Mobiles = () => {
     }
   };
 
-  // Get unique brands from products
   const availableBrands = useMemo(() => {
-    const brands = new Set(products.map(p => p.brand));
-    return Array.from(brands).sort();
-  }, [products]);
+    const dbBrands = new Set(mobiles.map(p => p.brand));
+    const allBrands = new Set([...mobileBrands, ...dbBrands]);
+    return Array.from(allBrands).sort((a, b) => a.localeCompare(b));
+  }, [mobiles]);
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
@@ -104,8 +103,8 @@ const Mobiles = () => {
 
         {/* Header Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-          <p className="text-gray-500 mt-1">Browse our collection of phones and accessories</p>
+          <h1 className="text-3xl font-bold text-gray-900">Mobiles</h1>
+          <p className="text-gray-500 mt-1">Browse our collection of premium smartphones</p>
         </div>
 
         {/* Search Bar (Full Width) */}
@@ -123,25 +122,7 @@ const Mobiles = () => {
           {/* Sidebar Filters */}
           <aside className="w-full lg:w-64 flex-shrink-0 space-y-8">
 
-            {/* Categories */}
-            <div>
-              <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Category</h3>
-              <div className="space-y-1">
-                {['All Products', 'Phones', 'Accessories'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat === 'All Products' ? 'All' : cat as any)}
-                    className={`block w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${(activeCategory === 'All' && cat === 'All Products') ||
-                      activeCategory === cat
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             {/* Brands */}
             <div>

@@ -32,7 +32,7 @@ export const problemTypes = [
 ];
 
 export const mobileBrands = [
-  'Samsung', 'Apple', 'OnePlus', 'Xiaomi', 'Realme', 'Vivo', 'Oppo', 'Motorola', 'Nothing'
+  'Apple', 'Google', 'Infinix', 'iQOO', 'Motorola', 'Nokia', 'Nothing', 'OnePlus', 'Oppo', 'POCO', 'Realme', 'Redmi', 'Samsung', 'Vivo', 'Xiaomi'
 ];
 
 export const accessoryTypes = [
