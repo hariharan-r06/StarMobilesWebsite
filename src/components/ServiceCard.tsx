@@ -1,6 +1,5 @@
 import React from 'react';
 import { Smartphone, Battery, RefreshCw, Droplets, Camera, Plug } from 'lucide-react';
-import { formatPrice } from '@/utils/helpers';
 
 const iconMap: Record<string, React.ElementType> = {
   Smartphone, Battery, RefreshCw, Droplets, Camera, Plug,
@@ -9,13 +8,12 @@ const iconMap: Record<string, React.ElementType> = {
 interface ServiceCardProps {
   name: string;
   icon: string;
-  price: number;
   time: string;
   description: string;
   onBook?: () => void;
 }
 
-const ServiceCard = ({ name, icon, price, time, description, onBook }: ServiceCardProps) => {
+const ServiceCard = ({ name, icon, time, description, onBook }: ServiceCardProps) => {
   const Icon = iconMap[icon] || Smartphone;
 
   return (
@@ -26,8 +24,6 @@ const ServiceCard = ({ name, icon, price, time, description, onBook }: ServiceCa
       <h3 className="font-heading text-base font-semibold">{name}</h3>
       <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{description}</p>
       <div className="mt-3 flex items-center justify-center gap-3 text-sm">
-        <span className="price-text font-bold">From {formatPrice(price)}</span>
-        <span className="text-muted-foreground">•</span>
         <span className="text-muted-foreground">{time}</span>
       </div>
       {onBook && (

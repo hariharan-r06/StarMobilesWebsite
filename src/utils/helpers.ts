@@ -45,10 +45,10 @@ export const accessoryTypes = [
 ];
 
 export const services = [
-  { id: 1, name: 'Screen Repair', icon: 'Smartphone', price: 1500, time: '2-3 hours', description: 'Professional screen replacement for all brands' },
-  { id: 2, name: 'Battery Replacement', icon: 'Battery', price: 800, time: '1-2 hours', description: 'Genuine battery replacement with warranty' },
-  { id: 3, name: 'Software Update', icon: 'RefreshCw', price: 500, time: '30 mins', description: 'OS updates, bug fixes, and optimization' },
-  { id: 4, name: 'Water Damage Repair', icon: 'Droplets', price: 2000, time: '4-6 hours', description: 'Complete water damage assessment and repair' },
-  { id: 5, name: 'Camera Repair', icon: 'Camera', price: 1200, time: '2-3 hours', description: 'Front and rear camera module replacement' },
-  { id: 6, name: 'Charging Port Repair', icon: 'Plug', price: 700, time: '1 hour', description: 'Charging port cleaning and replacement' },
+  { id: 1, name: 'Screen Repair', icon: 'Smartphone', time: '2-3 hours', description: 'Professional screen replacement for all brands' },
+  { id: 2, name: 'Battery Replacement', icon: 'Battery', time: '1-2 hours', description: 'Genuine battery replacement with warranty' },
+  { id: 3, name: 'Software Update', icon: 'RefreshCw', time: '30 mins', description: 'OS updates, bug fixes, and optimization' },
+  { id: 4, name: 'Water Damage Repair', icon: 'Droplets', time: '4-6 hours', description: 'Complete water damage assessment and repair' },
+  { id: 5, name: 'Camera Repair', icon: 'Camera', time: '2-3 hours', description: 'Front and rear camera module replacement' },
+  { id: 6, name: 'Charging Port Repair', icon: 'Plug', time: '1 hour', description: 'Charging port cleaning and replacement' },
 ];
