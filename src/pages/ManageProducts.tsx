@@ -115,33 +115,46 @@ const ManageProducts = () => {
   };
 
   const uploadImage = async (): Promise<string> => {
-    if (!imageFile) return form.image;
+    if (!imageFile && !imagePreview) return form.image;
+
+    // If we have a preview (either from file or URL paste)
+    const imageToUpload = imagePreview || form.image;
+
+    // If it's already a proper URL (not base64), return as-is
+    if (imageToUpload.startsWith('http://') || imageToUpload.startsWith('https://')) {
+      return imageToUpload;
+    }
 
     setUploadingImage(true);
     try {
-      const formData = new FormData();
-      formData.append('image', imageFile);
-
+      // Send base64 image as JSON to backend
       const response = await fetch(`${API_URL}/upload/image`, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`
         },
-        body: formData
+        body: JSON.stringify({
+          image: imageToUpload,
+          filename: imageFile?.name || 'product-image'
+        })
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        console.log('Image uploaded successfully:', data.url);
+        if (data.warning) {
+          console.warn('Upload warning:', data.warning);
+        }
         return data.url;
       } else {
-        // If upload endpoint doesn't exist, use base64 data URL as fallback
-        console.log('Image upload endpoint not available, using data URL');
-        return imagePreview;
+        console.log('Image upload failed, using base64:', data.error);
+        return imageToUpload; // Fallback to base64
       }
     } catch (error) {
       console.error('Image upload error:', error);
-      // Fallback to data URL
-      return imagePreview;
+      return imageToUpload; // Fallback to base64
     } finally {
       setUploadingImage(false);
     }
