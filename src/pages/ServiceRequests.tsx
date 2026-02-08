@@ -4,7 +4,7 @@ import { statusColors as statusColorsMap, statusLabels } from '@/utils/helpers';
 import {
   Search, X, Calendar, Phone, Loader2, Wrench,
   Clock, User, Smartphone, AlertCircle, CheckCircle2,
-  RefreshCw, Filter, ArrowRight, MessageSquare, Briefcase
+  RefreshCw, Filter, ArrowRight, MessageSquare, Briefcase, Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,7 +16,7 @@ const statusColors: Record<string, string> = {
 };
 
 const ServiceRequests = () => {
-  const { bookings, updateBookingStatus, isLoading } = useBookings();
+  const { bookings, updateBookingStatus, isLoading, fetchBookings } = useBookings();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selected, setSelected] = useState<Booking | null>(null);
@@ -26,19 +26,18 @@ const ServiceRequests = () => {
   const filtered = bookings.filter(b => {
     const customerName = b.customer_name || '';
     const matchSearch = !search ||
-      b.id.toLowerCase().includes(search.toLowerCase()) ||
+      (b.id || '').toLowerCase().includes(search.toLowerCase()) ||
       customerName.toLowerCase().includes(search.toLowerCase()) ||
-      b.brand.toLowerCase().includes(search.toLowerCase()) ||
-      b.model.toLowerCase().includes(search.toLowerCase());
+      (b.brand || '').toLowerCase().includes(search.toLowerCase()) ||
+      (b.model || '').toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || b.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // BookingContext doesn't have a fetchBookings, but it likely uses a ref or effect
-    // We'll just trigger a small delay to simulate refresh if a manual fetch isn't exposed
-    setTimeout(() => setIsRefreshing(false), 800);
+    await fetchBookings();
+    setIsRefreshing(false);
   };
 
   const handleStatusChange = async (id: string, status: Booking['status']) => {
@@ -153,8 +152,8 @@ const ServiceRequests = () => {
                 key={s}
                 onClick={() => setStatusFilter(s)}
                 className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${statusFilter === s
-                    ? 'bg-primary text-white shadow-md shadow-primary/20'
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  ? 'bg-primary text-white shadow-md shadow-primary/20'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                   }`}
               >
                 {s ? (statusLabels[s as keyof typeof statusLabels] || s) : 'All Requests'}
@@ -237,7 +236,7 @@ const ServiceRequests = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-slate-900 leading-tight">Service Ticket</h2>
-                  <p className="text-xs text-slate-500 font-medium">Ref: {selected.id.toUpperCase()}</p>
+                  <p className="text-xs text-slate-500 font-medium">Ref: {(selected.id || '').toUpperCase()}</p>
                 </div>
               </div>
               <button onClick={() => setSelected(null)} className="p-2.5 rounded-xl text-slate-400 hover:bg-white hover:text-slate-600 transition-all shadow-sm">
