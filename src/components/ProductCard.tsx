@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, ShoppingBag } from 'lucide-react';
 import { formatPrice } from '@/utils/helpers';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import LoginModal from './LoginModal';
+import BookProductModal from './BookProductModal';
 
 interface ProductCardProps {
   id: string;
@@ -26,6 +27,7 @@ const ProductCard = ({ id, brand, model, price, image, ram, storage, rating, cat
   const { addItem, isLoading } = useCart();
   const { isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showBookModal, setShowBookModal] = useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -50,6 +52,17 @@ const ProductCard = ({ id, brand, model, price, image, ram, storage, rating, cat
     } else {
       toast.error('Failed to add to cart');
     }
+  };
+
+  const handleBook = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    setShowBookModal(true);
   };
 
   return (
@@ -103,22 +116,42 @@ const ProductCard = ({ id, brand, model, price, image, ram, storage, rating, cat
               )}
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={isLoading}
-              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-600/20 transition-all hover:scale-110 active:scale-95 disabled:opacity-50"
-              title={isAuthenticated ? 'Add to Cart' : 'Login to add to cart'}
-            >
-              <ShoppingCart className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Book Button */}
+              <button
+                onClick={handleBook}
+                className="px-3 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+                title="Book with 20% Advance"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" /> Book
+              </button>
+
+              {/* Cart Button */}
+              <button
+                onClick={handleAddToCart}
+                disabled={isLoading}
+                className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-600/20 transition-all hover:scale-110 active:scale-95 disabled:opacity-50"
+                title={isAuthenticated ? 'Add to Cart' : 'Login to add to cart'}
+              >
+                <ShoppingCart className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Login Modal */}
       <LoginModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
+
+      {/* Book Product Modal */}
+      <BookProductModal
+        open={showBookModal}
+        onClose={() => setShowBookModal(false)}
+        product={{ id, brand, model, price, image, category }}
+      />
     </>
   );
 };
 
 export default ProductCard;
+

@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { BookingProvider } from "@/context/BookingContext";
 import { ProductsProvider } from "@/context/ProductsContext";
+import { OrderProvider } from "@/context/OrderContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Index from "./pages/Index";
@@ -22,6 +23,8 @@ import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import ManageProducts from "./pages/ManageProducts";
 import ServiceRequests from "./pages/ServiceRequests";
+import ManageOrders from "./pages/ManageOrders";
+import MyOrders from "./pages/MyOrders";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
@@ -58,10 +61,12 @@ const AppRoutes = () => (
     <Route path="/cart" element={<Cart />} />
     <Route path="/book-service" element={<ProtectedRoute><ServiceBooking /></ProtectedRoute>} />
     <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+    <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
     <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
     <Route path="/admin/products" element={<AdminRoute><ManageProducts /></AdminRoute>} />
     <Route path="/admin/requests" element={<AdminRoute><ServiceRequests /></AdminRoute>} />
+    <Route path="/admin/orders" element={<AdminRoute><ManageOrders /></AdminRoute>} />
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
@@ -76,15 +81,17 @@ const App = () => (
         <ProductsProvider>
           <CartProvider>
             <BookingProvider>
-              <BrowserRouter>
-                <div className="flex min-h-screen flex-col">
-                  <Navbar />
-                  <main className="flex-1">
-                    <AppRoutes />
-                  </main>
-                  <Footer />
-                </div>
-              </BrowserRouter>
+              <OrderProvider>
+                <BrowserRouter>
+                  <div className="flex min-h-screen flex-col">
+                    <Navbar />
+                    <main className="flex-1">
+                      <AppRoutes />
+                    </main>
+                    <Footer />
+                  </div>
+                </BrowserRouter>
+              </OrderProvider>
             </BookingProvider>
           </CartProvider>
         </ProductsProvider>

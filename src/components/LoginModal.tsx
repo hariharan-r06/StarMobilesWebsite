@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { X, Eye, EyeOff, Phone, Mail, Loader2, ArrowLeft, KeyRound } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
@@ -23,7 +24,8 @@ const LoginModal = ({ open, onClose }: LoginModalProps) => {
         password: '',
         confirmPassword: ''
     });
-    const { login, loginWithPhone, signup, forgotPassword } = useAuth();
+    const { login, loginWithPhone, signup, forgotPassword, profile } = useAuth();
+    const navigate = useNavigate();
 
     if (!open) return null;
 
@@ -53,6 +55,17 @@ const LoginModal = ({ open, onClose }: LoginModalProps) => {
                 toast.success(res.message);
                 resetForm();
                 handleClose();
+                // Redirect admin to dashboard
+                setTimeout(() => {
+                    // Re-check profile after auth state updates
+                    const cachedProfile = localStorage.getItem('user_profile');
+                    if (cachedProfile) {
+                        const p = JSON.parse(cachedProfile);
+                        if (p.role === 'admin') {
+                            navigate('/admin');
+                        }
+                    }
+                }, 500);
             } else {
                 toast.error(res.message);
             }
@@ -83,6 +96,16 @@ const LoginModal = ({ open, onClose }: LoginModalProps) => {
                 toast.success(res.message);
                 resetForm();
                 handleClose();
+                // Redirect admin to dashboard
+                setTimeout(() => {
+                    const cachedProfile = localStorage.getItem('user_profile');
+                    if (cachedProfile) {
+                        const p = JSON.parse(cachedProfile);
+                        if (p.role === 'admin') {
+                            navigate('/admin');
+                        }
+                    }
+                }, 500);
             } else {
                 toast.error(res.message);
             }

@@ -97,6 +97,9 @@ const Navbar = () => {
                           <Link to="/admin/products" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" onClick={() => setProfileOpen(false)}>
                             <Package className="h-4 w-4" /> Manage Products
                           </Link>
+                          <Link to="/admin/orders" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted text-orange-600" onClick={() => setProfileOpen(false)}>
+                            <Package className="h-4 w-4" /> Product Orders
+                          </Link>
                           <Link to="/admin/requests" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" onClick={() => setProfileOpen(false)}>
                             <Wrench className="h-4 w-4" /> Service Requests
                           </Link>
@@ -106,8 +109,11 @@ const Navbar = () => {
                           <Link to="/profile" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" onClick={() => setProfileOpen(false)}>
                             <User className="h-4 w-4" /> Profile
                           </Link>
+                          <Link to="/my-orders" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted text-orange-600" onClick={() => setProfileOpen(false)}>
+                            <Package className="h-4 w-4" /> My Product Orders
+                          </Link>
                           <Link to="/my-bookings" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" onClick={() => setProfileOpen(false)}>
-                            <Wrench className="h-4 w-4" /> My Bookings
+                            <Wrench className="h-4 w-4" /> My Service Bookings
                           </Link>
                           <Link to="/book-service" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" onClick={() => setProfileOpen(false)}>
                             <Wrench className="h-4 w-4" /> Book Service
