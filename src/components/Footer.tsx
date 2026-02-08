@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 
 const Footer = () => (
   <footer className="border-t border-border bg-card mt-16">
@@ -13,7 +13,7 @@ const Footer = () => (
             Star Mobiles
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Your trusted destination for smartphones, accessories, and expert repair services in India since 2015.
+            Your trusted destination for smartphones, accessories, and expert repair services since 2022. Serving Ponnamaravathi with excellence.
           </p>
         </div>
 
@@ -51,15 +51,19 @@ const Footer = () => (
           <div className="flex flex-col gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary shrink-0" />
-              <span>123 MG Road, Bangalore, Karnataka 560001</span>
+              <span>305, Anna Salai Rd, Ponnamaravathi West, Tamil Nadu 622407</span>
             </div>
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-primary shrink-0" />
-              <span>+91 98765 43210</span>
+              <span>097878 71771</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary shrink-0" />
+              <span>Open · Closes 10 pm</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-primary shrink-0" />
-              <span>info@starmobiles.com</span>
+              <span>starmobiles@gmail.com</span>
             </div>
           </div>
         </div>

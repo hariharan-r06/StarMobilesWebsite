@@ -29,7 +29,7 @@ const Index = () => {
           {[
             { icon: Shield, title: '100% Genuine', desc: 'Authorized Dealer' },
             { icon: Clock, title: 'Quick Service', desc: 'Same Day Repair' },
-            { icon: Award, title: '10+ Years', desc: 'Trusted Experience' },
+            { icon: Award, title: 'Trusted Experience', desc: 'Since 2022' },
             { icon: Star, title: '50,000+', desc: 'Happy Customers' },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-4 group">
